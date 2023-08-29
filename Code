@@ -1,0 +1,39 @@
+#include <Servo.h>
+
+#define SOIL_SENSOR_PIN D1
+#define RELAY_PIN D2
+#define SERVO_PIN D3
+
+Servo myservo;
+unsigned long previousTime = 0;
+
+void setup() {
+  Serial.begin(9600);
+  pinMode(SOIL_SENSOR_PIN, INPUT);
+  pinMode(RELAY_PIN, OUTPUT);
+  myservo.attach(SERVO_PIN);
+}
+
+void loop() {
+  unsigned long currentTime = millis();
+  int soilMoisture = analogRead(SOIL_SENSOR_PIN);
+  Serial.print("Soil moisture: ");
+  Serial.println(soilMoisture);
+
+  // check if it's time to rotate the container
+  if (currentTime - previousTime >= 43200000) { // 12 hours in milliseconds
+    previousTime = currentTime;
+    myservo.write(90); // rotate the container
+    delay(5000); // wait for 5 seconds while container rotates
+    myservo.write(0); // reset servo position
+  }
+
+  // check soil moisture level and turn on/off the pump accordingly
+  if (soilMoisture < 500) { // change threshold value according to your sensor
+    digitalWrite(RELAY_PIN, HIGH); // turn on the pump
+  } else {
+    digitalWrite(RELAY_PIN, LOW); // turn off the pump
+  }
+
+  delay(1000);
+}
